@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36408.4 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "migApp.Shared", "migApp.Shared.csproj", "{7A6B7645-BA24-4169-803C-3A89CD2B8712}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7A6B7645-BA24-4169-803C-3A89CD2B8712}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A6B7645-BA24-4169-803C-3A89CD2B8712}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A6B7645-BA24-4169-803C-3A89CD2B8712}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A6B7645-BA24-4169-803C-3A89CD2B8712}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BB8A2AE1-1C0A-4CE6-A378-E399D2069E4F}
+	EndGlobalSection
+EndGlobal
