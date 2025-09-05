@@ -1,4 +1,6 @@
 ﻿using migApp.Shared.Dtos.Review_Rating;
+using System;
+using System.Collections.Generic;
 
 namespace migApp.Shared.Dtos.Review
 {
