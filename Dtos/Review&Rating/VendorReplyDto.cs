@@ -1,4 +1,6 @@
-﻿namespace migApp.Shared.Dtos.Review_Rating
+﻿using System;
+
+namespace migApp.Shared.Dtos.Review_Rating
 {
     public class VendorReplyDto
     {

@@ -1,4 +1,5 @@
-﻿using migApp.Shared.Dtos.Products;
+﻿using System.Collections.Generic;
+using migApp.Shared.Dtos.Products;
 using migApp.Shared.Dtos.Review;
 using migApp.Shared.Dtos.Review_Rating;
 
