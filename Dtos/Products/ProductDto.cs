@@ -1,4 +1,6 @@
 ﻿using migApp.Shared.Enums;
+using System;
+using System.Collections.Generic;
 
 namespace migApp.Shared.Dtos.Products
 {

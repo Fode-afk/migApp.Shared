@@ -1,4 +1,6 @@
-﻿namespace migApp.Shared.EventDtos
+﻿using System.Collections.Generic;
+
+namespace migApp.Shared.EventDtos
 {
     public class CardPublishedDto
     {

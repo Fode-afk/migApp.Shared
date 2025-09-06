@@ -1,4 +1,7 @@
-﻿namespace migApp.Shared.Dtos.Cards
+﻿using System;
+using System.Collections.Generic;
+
+namespace migApp.Shared.Dtos.Cards
 {
     public class CardDto
     {
