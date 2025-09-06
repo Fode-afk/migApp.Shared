@@ -1,4 +1,6 @@
-﻿using migApp.Shared.Dtos.Products;
+﻿using System;
+using System.Collections.Generic;
+using migApp.Shared.Dtos.Products;
 using migApp.Shared.Enums;
 using System;
 using System.Collections.Generic;
