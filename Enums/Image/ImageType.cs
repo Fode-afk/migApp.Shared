@@ -1,6 +1,6 @@
-﻿namespace migApp.Shared.Enums
+﻿namespace migApp.Shared.Enums.Image
 {
-    public enum ContentType
+    public enum ImageType
     {
         UNDEFINED,
         AVATAR_IMAGE,

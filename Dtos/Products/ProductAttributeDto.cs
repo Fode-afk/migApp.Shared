@@ -1,4 +1,4 @@
-﻿using migApp.Shared.Enums;
+﻿using migApp.Shared.Enums.Product;
 
 namespace migApp.Shared.Dtos.Products
 {

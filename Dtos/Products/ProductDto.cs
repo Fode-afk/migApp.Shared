@@ -1,4 +1,4 @@
-﻿using migApp.Shared.Enums;
+﻿using migApp.Shared.Enums.Product;
 using System;
 using System.Collections.Generic;
 

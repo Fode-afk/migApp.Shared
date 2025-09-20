@@ -1,4 +1,4 @@
-﻿namespace migApp.Shared.Enums
+﻿namespace migApp.Shared.MsgBus.Enums
 {
     public enum ServicesEnum
     {

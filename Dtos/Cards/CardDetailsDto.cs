@@ -2,7 +2,6 @@
 using migApp.Shared.Dtos.Products;
 using migApp.Shared.Dtos.Review;
 using migApp.Shared.Dtos.Review_Rating;
-using System.Collections.Generic;
 
 namespace migApp.Shared.Dtos.Cards
 {

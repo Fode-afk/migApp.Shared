@@ -1,4 +1,4 @@
-﻿namespace migApp.Shared.Enums
+﻿namespace migApp.Shared.Enums.Product
 {
     public enum ProductType
     {

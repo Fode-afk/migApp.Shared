@@ -1,4 +1,5 @@
 ﻿using migApp.Shared.Enums;
+using migApp.Shared.MsgBus.Enums;
 
 namespace migApp.Shared.EventDtos
 {

@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using migApp.Shared.Dtos.Products;
-using migApp.Shared.Enums;
-using System;
-using System.Collections.Generic;
+using migApp.Shared.Enums.Product;
 
-namespace migApp.Shared.EventDtos
+namespace migApp.Shared.MsgBus.Dtos.Product
 {
-    public class ProductPublishedDto
+    public class ProductUpdatePublishedDto : ProductDtoClass
     {
-        public string ProductId { get; set; }
+        public override string ProductId { get; set; }
         public string ParentCardId { get; set; }
 
         public ProductType Type { get; set; }
