@@ -2,7 +2,7 @@
 
 namespace migApp.Shared.MsgBus.Dtos.Product
 {
-    public class ProductEventDto<T> : BaseEventDto //where T : ProductDtoClass
+    public class ProductEventDto<T> : BaseEventDto<ProductEventDto<T>>
     {
         public ProductEvents EventType { get; set; }
         public required T Data { get; set; }

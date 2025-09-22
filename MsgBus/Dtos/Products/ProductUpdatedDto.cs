@@ -5,7 +5,7 @@ using migApp.Shared.Enums.Product;
 
 namespace migApp.Shared.MsgBus.Dtos.Product
 {
-    public class ProductUpdatePublishedDto : ProductDtoClass
+    public class ProductUpdatedDto : ProductDtoClass
     {
         public override string ProductId { get; set; }
         public string ParentCardId { get; set; }

@@ -3,9 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace migApp.Shared.MsgBus.Dtos.Product
 {
-    [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "DtoType")]
     [JsonDerivedType(typeof(ProductPublishedDto), "Published")]
-    [JsonDerivedType(typeof(ProductUpdatePublishedDto), "Updated")]
+    [JsonDerivedType(typeof(ProductUpdatedDto), "Updated")]
     [JsonDerivedType(typeof(ProductArchivedDto), "Archived")]
     [JsonDerivedType(typeof(ProductUnarchivedDto), "Unarchived")]
     [JsonDerivedType(typeof(ProductParentCardChangedDto), "ParentCardChanged")]
