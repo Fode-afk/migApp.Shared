@@ -8,6 +8,7 @@ namespace migApp.Shared.MsgBus.Dtos.Product
     [JsonDerivedType(typeof(ProductUpdatedDto), "Updated")]
     [JsonDerivedType(typeof(ProductArchivedDto), "Archived")]
     [JsonDerivedType(typeof(ProductUnarchivedDto), "Unarchived")]
+    [JsonDerivedType(typeof(ProductDeletedDto), "Deleted")]
     [JsonDerivedType(typeof(ProductParentCardChangedDto), "ParentCardChanged")]
     public abstract class ProductDtoClass
     {
