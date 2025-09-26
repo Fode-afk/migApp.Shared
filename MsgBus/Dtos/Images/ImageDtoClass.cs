@@ -5,7 +5,7 @@ namespace migApp.Shared.MsgBus.Dtos.Images
 {
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
     [JsonDerivedType(typeof(ImagePublishedDto), "Published")]
-    [JsonDerivedType(typeof(ImagePublishedDto), "Deleted")]
+    [JsonDerivedType(typeof(ImageDeletedDto), "Deleted")]
     public abstract class ImageDtoClass
     {
         abstract public string Id { get; set; }
