@@ -4,4 +4,12 @@
 		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <Folder Include="Caching\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="StackExchange.Redis" Version="2.9.25" />
+	</ItemGroup>
+
 </Project>
