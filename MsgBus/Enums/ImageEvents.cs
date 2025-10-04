@@ -5,5 +5,6 @@
         Undetermined = 0,
         Published,
         Deleted,
+        ListDeleted
     }
 }
