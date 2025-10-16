@@ -4,6 +4,16 @@
     {
         UNKNOWN_KEY,
         BRAND,
-        VOLUME
+        VOLUME,
+        COLOR,
+        BATTERY_CAPACITY,
+        FLAVOR,
+        NICOTINE,
+        BASE,
+        WATTAGE,
+        TYPE,
+        PUFFS,
+        RESISTANCE,
+        PACK_SIZE
     }
 }
