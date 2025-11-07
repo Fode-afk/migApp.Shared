@@ -8,7 +8,8 @@
         Cart,
         Vendor,
         Image,
-        Embedding
+        Embedding,
+        User
         //Дописать
     }
 }

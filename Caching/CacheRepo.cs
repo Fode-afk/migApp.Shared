@@ -42,7 +42,38 @@ namespace migApp.Shared.Caching
             }
             catch (Exception ex)
             {
-                return new ExecutionResult<List<T?>>(false, ex.Message, []);
+                return new ExecutionResult<List<T?>>(false, ex.Message, null);
+            }
+        }
+
+        public async Task<ExecutionResult> SetManyAsync<T>(Dictionary<string, T> data, TimeSpan? expiry = null)
+        {
+            try
+            {
+                if (data == null || data.Count == 0)
+                    return new ExecutionResult(false, "No data to cache");
+
+                var entries = new List<KeyValuePair<RedisKey, RedisValue>>(data.Count);
+
+                foreach (var kv in data)
+                {
+                    var json = JsonSerializer.Serialize(kv.Value);
+                    entries.Add(new KeyValuePair<RedisKey, RedisValue>(kv.Key, json));
+                }
+
+                await _db.StringSetAsync([.. entries]);
+
+                if (expiry.HasValue)
+                {
+                    var expiryTasks = entries.Select(e => _db.KeyExpireAsync(e.Key, expiry.Value));
+                    await Task.WhenAll(expiryTasks);
+                }
+
+                return new ExecutionResult(true, string.Empty);
+            }
+            catch (Exception ex)
+            {
+                return new ExecutionResult(false, ex.Message);
             }
         }
 
@@ -76,6 +107,6 @@ namespace migApp.Shared.Caching
             {
                 return new ExecutionResult(false, ex.Message);
             }
-        }        
+        }
     }
 }
