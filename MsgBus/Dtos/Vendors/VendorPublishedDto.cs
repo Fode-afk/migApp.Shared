@@ -2,6 +2,6 @@
 {
     public class VendorPublishedDto : VendorDtoClass
     {
-        public override string Id { get; set; }
+        public override string VendorId { get; set; }
     }
 }

@@ -1,5 +1,4 @@
-﻿using migApp.Shared.MsgBus.Dtos.Images;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace migApp.Shared.MsgBus.Dtos.Vendors
 {
@@ -8,6 +7,6 @@ namespace migApp.Shared.MsgBus.Dtos.Vendors
     [JsonDerivedType(typeof(VendorDeletedDto), "Deleted")]
     public abstract class VendorDtoClass
     {
-        abstract public string Id { get; set; }
+        abstract public string VendorId { get; set; }
     }
 }

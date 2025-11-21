@@ -1,9 +1,8 @@
 ﻿namespace migApp.Shared.MsgBus.Enums
 {
-    public enum EmbeddingEvents
+    public enum NotificationEvents
     {
         Undetermined = 0,
-        Published,       
-        Deleted
+        Published
     }
 }

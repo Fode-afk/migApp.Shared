@@ -84,7 +84,8 @@ namespace migApp.Shared.Caching
             try
             {
                 var json = JsonSerializer.Serialize(value);
-                var res = await _db.StringSetAsync(key, json, expiry);
+
+                var res = await _db.StringSetAsync(key, json, expiry, When.Always);
 
                 return new ExecutionResult(res, string.Empty);
             }
