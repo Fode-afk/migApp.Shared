@@ -10,7 +10,8 @@
         Image,
         User,
         Order,
-        Notifiaction
+        Notifiaction,
+        Embedding
         //Дописать
     }
 }
