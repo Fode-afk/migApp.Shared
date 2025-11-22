@@ -85,6 +85,15 @@ namespace migApp.Shared.Grpc
                     ex.Message
                 ));
             }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "INVALID_ARGUMENT: {Message}", ex.Message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    ex.Message
+                ));
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "INTERNAL_SERVER_ERROR");
