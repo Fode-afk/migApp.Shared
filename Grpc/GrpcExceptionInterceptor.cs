@@ -20,6 +20,13 @@ namespace migApp.Shared.Grpc
                 return await continuation(request, context);
             }
             catch (RpcException) { throw; }
+            catch (OperationCanceledException)
+            {
+                throw new RpcException(new Status(
+                    StatusCode.Cancelled,
+                    "Client cancelled the request"
+                ));
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "INTERNAL_SERVER_ERROR");

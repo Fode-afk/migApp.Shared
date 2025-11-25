@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace migApp.Shared.Caching
@@ -12,10 +13,12 @@ namespace migApp.Shared.Caching
     {
         private readonly IDatabase _db = connectionMultiplexer.GetDatabase();
 
-        public async Task<ExecutionResult<List<T?>>> GetManyAsync<T>(string[] keys, TimeSpan? slidingExpiration = null, bool includeNulls = false)
+        public async Task<ExecutionResult<List<T?>>> GetManyAsync<T>(string[] keys, TimeSpan? slidingExpiration = null, bool includeNulls = false, CancellationToken ct = default)
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 var redisKeys = keys.Select(k => (RedisKey)k).ToArray();
                 var values = await _db.StringGetAsync(redisKeys);
 
@@ -23,6 +26,8 @@ namespace migApp.Shared.Caching
 
                 for (int i = 0; i < redisKeys.Length; i++)
                 {
+                    ct.ThrowIfCancellationRequested();
+
                     var value = values[i];
                     if (value.HasValue)
                     {
@@ -42,16 +47,19 @@ namespace migApp.Shared.Caching
 
                 return new ExecutionResult<List<T?>>(true, string.Empty, result);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 return new ExecutionResult<List<T?>>(false, ex.Message, null);
             }
         }
 
-        public async Task<ExecutionResult> SetManyAsync<T>(Dictionary<string, T> data, TimeSpan? expiry = null)
+        public async Task<ExecutionResult> SetManyAsync<T>(Dictionary<string, T> data, TimeSpan? expiry = null, CancellationToken ct = default)
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 if (data == null || data.Count == 0)
                     return new ExecutionResult(false, "No data to cache");
 
@@ -59,6 +67,8 @@ namespace migApp.Shared.Caching
 
                 foreach (var kv in data)
                 {
+                    ct.ThrowIfCancellationRequested();
+
                     var json = JsonSerializer.Serialize(kv.Value);
                     entries.Add(new KeyValuePair<RedisKey, RedisValue>(kv.Key, json));
                 }
@@ -73,32 +83,38 @@ namespace migApp.Shared.Caching
 
                 return new ExecutionResult(true, string.Empty);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 return new ExecutionResult(false, ex.Message);
             }
         }
 
-        public async Task<ExecutionResult> SetAsync<T>(string key, T value, TimeSpan? expiry = null)
+        public async Task<ExecutionResult> SetAsync<T>(string key, T value, TimeSpan? expiry = null, CancellationToken ct = default)
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 var json = JsonSerializer.Serialize(value);
 
                 var res = await _db.StringSetAsync(key, json, expiry, When.Always);
 
                 return new ExecutionResult(res, string.Empty);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 return new ExecutionResult(false, ex.Message);
             }           
         }
 
-        public async Task<ExecutionResult> RemoveAsync(string key)
+        public async Task<ExecutionResult> RemoveAsync(string key, CancellationToken ct = default)
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 var res = await _db.KeyDeleteAsync(key);
 
                 if (res)
@@ -106,16 +122,19 @@ namespace migApp.Shared.Caching
 
                 return new ExecutionResult(res, "Couldn't find object in cache");
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 return new ExecutionResult(false, ex.Message);
             }
         }
 
-        public async Task<ExecutionResult<List<T>>> GetSetMembersAsync<T>(string key, TimeSpan? slidingExpiration = null)
+        public async Task<ExecutionResult<List<T>>> GetSetMembersAsync<T>(string key, TimeSpan? slidingExpiration = null, CancellationToken ct = default)
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 var members = await _db.SetMembersAsync(key);
 
                 if (slidingExpiration.HasValue)
@@ -131,16 +150,19 @@ namespace migApp.Shared.Caching
 
                 return new ExecutionResult<List<T>>(true, string.Empty, result);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 return new ExecutionResult<List<T>>(false, ex.Message, null);
             }
         }
 
-        public async Task<ExecutionResult> AddToSetAsync<T>(string key, T value, TimeSpan? expiry = null)
+        public async Task<ExecutionResult> AddToSetAsync<T>(string key, T value, TimeSpan? expiry = null, CancellationToken ct = default)
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 var json = JsonSerializer.Serialize(value);
                 var added = await _db.SetAddAsync(key, json);
 
@@ -149,21 +171,25 @@ namespace migApp.Shared.Caching
 
                 return new ExecutionResult(added, string.Empty);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 return new ExecutionResult(false, ex.Message);
             }
         }
 
-        public async Task<ExecutionResult> RemoveFromSetAsync<T>(string key, T value)
+        public async Task<ExecutionResult> RemoveFromSetAsync<T>(string key, T value, CancellationToken ct = default)
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 var json = JsonSerializer.Serialize(value);
                 var removed = await _db.SetRemoveAsync(key, json);
 
                 return new ExecutionResult(removed, string.Empty);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 return new ExecutionResult(false, ex.Message);
