@@ -24,6 +24,8 @@
 
         public static Result AlreadyExists(string message) => new(ErrorType.AlreadyExists, message);
 
+        public static Result Unauthenticated(string message) => new(ErrorType.Unauthenticated, message);
+
         public static Result Internal(string message) => new(ErrorType.Internal, message);
     }
 
@@ -50,6 +52,8 @@
 
         public static Result<T> AlreadyExists(string message) => new(ErrorType.AlreadyExists, message);
 
+        public static Result<T> Unauthenticated(string message) => new(ErrorType.Unauthenticated, message);
+
         public static Result<T> Internal(string message) => new(ErrorType.Internal, message);
     }
 
@@ -59,6 +63,7 @@
         NotFound,
         InvalidArgument,
         AlreadyExists,
+        Unauthenticated,
         Internal
     }
 }

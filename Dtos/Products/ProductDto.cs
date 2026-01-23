@@ -27,5 +27,7 @@ namespace migApp.Shared.Dtos.Products
 
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
+
+        public bool IsArchived { get; set; }
     }
 }

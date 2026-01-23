@@ -11,7 +11,8 @@
         User,
         Order,
         Notifiaction,
-        Embedding
+        Embedding,
+        AuthUser
         //Дописать
     }
 }

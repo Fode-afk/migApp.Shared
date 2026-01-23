@@ -26,6 +26,7 @@ namespace migApp.Shared.Grpc
                 ErrorType.NotFound => new Status(StatusCode.NotFound, message),
                 ErrorType.InvalidArgument => new Status(StatusCode.InvalidArgument, message),
                 ErrorType.AlreadyExists => new Status(StatusCode.AlreadyExists, message),
+                ErrorType.Unauthenticated => new Status(StatusCode.Unauthenticated, message),
                 ErrorType.Internal => new Status(StatusCode.Internal, message),
                 _ => new Status(StatusCode.Unknown, message)
             };

@@ -2,7 +2,8 @@
 {
     public enum ProductType
     {
-        UNKNOWN_TYPE,
-        SHIRTS
+        Unknown,
+        Vapes,
+        Liquids
     }
 }
