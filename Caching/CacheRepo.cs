@@ -6,194 +6,354 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using static migApp.Shared.returnTypes.ResultImport;
 
-namespace migApp.Shared.Caching
+namespace migApp.Shared.Caching;
+
+public class CacheRepo(IConnectionMultiplexer connectionMultiplexer) : ICacheRepo
 {
-    public class CacheRepo(IConnectionMultiplexer connectionMultiplexer) : ICacheRepo
+    private readonly IDatabase _db = connectionMultiplexer.GetDatabase();
+
+    public async Task<IResult<List<T>>> GetStringsAsync<T>(
+        string[] keys,
+        TimeSpan? slidingExpiration = null,
+        bool includeNulls = false,
+        CancellationToken cancellationToken = default)
     {
-        private readonly IDatabase _db = connectionMultiplexer.GetDatabase();
+        if (keys.Length == 0)
+            return Ok(new List<T>());
 
-        public async Task<ExecutionResult<List<T?>>> GetManyAsync<T>(string[] keys, TimeSpan? slidingExpiration = null, bool includeNulls = false, CancellationToken ct = default)
+        try
         {
-            try
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var redisKeys = keys.Select(k => (RedisKey)k).ToArray();
+            var values = await _db.StringGetAsync(redisKeys);
+
+            var result = new List<T>(keys.Length);
+            var keysToRefresh = slidingExpiration.HasValue
+                ? new List<RedisKey>()
+                : null;
+
+            for (int i = 0; i < redisKeys.Length; i++)
             {
-                ct.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                var redisKeys = keys.Select(k => (RedisKey)k).ToArray();
-                var values = await _db.StringGetAsync(redisKeys);
+                var value = values[i];
 
-                var result = new List<T?>();
-
-                for (int i = 0; i < redisKeys.Length; i++)
+                if (value.HasValue)
                 {
-                    ct.ThrowIfCancellationRequested();
+                    var deserialized = JsonSerializer.Deserialize<T>(value!);
 
-                    var value = values[i];
-                    if (value.HasValue)
-                    {
-                        result.Add(JsonSerializer.Deserialize<T>(value!));
+                    if (deserialized is null)
+                        return Internal<List<T>>("Failed to deserialize cached value");
 
-                        if (slidingExpiration != null)
-                            await _db.KeyExpireAsync(redisKeys[i], slidingExpiration);
-                    }
-                    else if (includeNulls)
-                    {
-                        result.Add(default);
-                    }
+                    result.Add(deserialized);
+                    keysToRefresh?.Add(redisKeys[i]);
                 }
-
-                if (result.Count == 0)
-                    return new ExecutionResult<List<T?>>(false, string.Empty, null);
-
-                return new ExecutionResult<List<T?>>(true, string.Empty, result);
-            }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                return new ExecutionResult<List<T?>>(false, ex.Message, null);
-            }
-        }
-
-        public async Task<ExecutionResult> SetManyAsync<T>(Dictionary<string, T> data, TimeSpan? expiry = null, CancellationToken ct = default)
-        {
-            try
-            {
-                ct.ThrowIfCancellationRequested();
-
-                if (data == null || data.Count == 0)
-                    return new ExecutionResult(false, "No data to cache");
-
-                var entries = new List<KeyValuePair<RedisKey, RedisValue>>(data.Count);
-
-                foreach (var kv in data)
+                else if (includeNulls)
                 {
-                    ct.ThrowIfCancellationRequested();
-
-                    var json = JsonSerializer.Serialize(kv.Value);
-                    entries.Add(new KeyValuePair<RedisKey, RedisValue>(kv.Key, json));
+                    result.Add(default!);
                 }
-
-                await _db.StringSetAsync([.. entries]);
-
-                if (expiry.HasValue)
-                {
-                    var expiryTasks = entries.Select(e => _db.KeyExpireAsync(e.Key, expiry.Value));
-                    await Task.WhenAll(expiryTasks);
-                }
-
-                return new ExecutionResult(true, string.Empty);
             }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
+
+            if (keysToRefresh is { Count: > 0 })
             {
-                return new ExecutionResult(false, ex.Message);
+                var tasks = keysToRefresh
+                    .Select(k => _db.KeyExpireAsync(k, slidingExpiration));
+
+                if (!(await Task.WhenAll(tasks)).All(x => x))
+                    return Internal<List<T>>("Failed to refresh sliding expiration");
             }
+
+            if (result.Count == 0)
+                return NotFound<List<T>>("No values found in cache");
+
+            return Ok(result);
         }
-
-        public async Task<ExecutionResult> SetAsync<T>(string key, T value, TimeSpan? expiry = null, CancellationToken ct = default)
+        catch (OperationCanceledException)
         {
-            try
-            {
-                ct.ThrowIfCancellationRequested();
-
-                var json = JsonSerializer.Serialize(value);
-
-                var res = await _db.StringSetAsync(key, json, expiry, When.Always);
-
-                return new ExecutionResult(res, string.Empty);
-            }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                return new ExecutionResult(false, ex.Message);
-            }           
+            throw;
         }
-
-        public async Task<ExecutionResult> RemoveAsync(string key, CancellationToken ct = default)
+        catch (JsonException)
         {
-            try
-            {
-                ct.ThrowIfCancellationRequested();
-
-                var res = await _db.KeyDeleteAsync(key);
-
-                if (res)
-                    return new ExecutionResult(res, string.Empty);
-
-                return new ExecutionResult(res, "Couldn't find object in cache");
-            }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                return new ExecutionResult(false, ex.Message);
-            }
+            return Internal<List<T>>("Invalid cache value format");
         }
-
-        public async Task<ExecutionResult<List<T>>> GetSetMembersAsync<T>(string key, TimeSpan? slidingExpiration = null, CancellationToken ct = default)
+        catch (Exception)
         {
-            try
-            {
-                ct.ThrowIfCancellationRequested();
-
-                var members = await _db.SetMembersAsync(key);
-
-                if (slidingExpiration.HasValue)
-                    await _db.KeyExpireAsync(key, slidingExpiration.Value);
-
-                var result = members
-                    .Select(m => JsonSerializer.Deserialize<T>(m))
-                    .Where(x => x != null)
-                    .ToList();
-
-                if (result.Count == 0)
-                    return new ExecutionResult<List<T>>(false, string.Empty, null);
-
-                return new ExecutionResult<List<T>>(true, string.Empty, result);
-            }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                return new ExecutionResult<List<T>>(false, ex.Message, null);
-            }
+            return Internal<List<T>>("Failed to get values from cache");
         }
+    }
 
-        public async Task<ExecutionResult> AddToSetAsync<T>(string key, T value, TimeSpan? expiry = null, CancellationToken ct = default)
+    public async Task<IResult<T>> GetStringAsync<T>(
+        string key,
+        TimeSpan? slidingExpiration = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
         {
-            try
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var value = await _db.StringGetAsync(key);
+
+            if (value.IsNullOrEmpty)
+                return NotFound<T>("Value not found in cache");
+
+            if (slidingExpiration.HasValue)
             {
-                ct.ThrowIfCancellationRequested();
-
-                var json = JsonSerializer.Serialize(value);
-                var added = await _db.SetAddAsync(key, json);
-
-                if (expiry.HasValue)
-                    await _db.KeyExpireAsync(key, expiry.Value);
-
-                return new ExecutionResult(added, string.Empty);
+                var refreshed = await _db.KeyExpireAsync(key, slidingExpiration);
+                if (!refreshed)
+                    return Internal<T>("Failed to refresh sliding expiration");
             }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                return new ExecutionResult(false, ex.Message);
-            }
+
+            var result = JsonSerializer.Deserialize<T>(value!);
+
+            if (result is null)
+                return Internal<T>("Failed to deserialize cached value");
+
+            return Ok(result);
         }
-
-        public async Task<ExecutionResult> RemoveFromSetAsync<T>(string key, T value, CancellationToken ct = default)
+        catch (OperationCanceledException) { throw; }
+        catch (JsonException)
         {
-            try
-            {
-                ct.ThrowIfCancellationRequested();
+            return Internal<T>("Invalid cache value format");
+        }
+        catch (Exception)
+        {
+            return Internal<T>("Failed to get value from cache");
+        }
+    }
 
-                var json = JsonSerializer.Serialize(value);
-                var removed = await _db.SetRemoveAsync(key, json);
+    public async Task<IResult> SetStringsAsync<T>(
+        Dictionary<string, T> data,
+        TimeSpan? expiry = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (data is null || data.Count == 0)
+            return InvalidArgument("Data dictionary cannot be null or empty");
 
-                return new ExecutionResult(removed, string.Empty);
-            }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
+        if (data.Any(x => x.Value is null))
+            return InvalidArgument("Null values are not allowed in cache");
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var entries = new List<KeyValuePair<RedisKey, RedisValue>>(data.Count);
+
+            foreach (var kv in data)
             {
-                return new ExecutionResult(false, ex.Message);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var json = JsonSerializer.Serialize(kv.Value);
+                entries.Add(new KeyValuePair<RedisKey, RedisValue>(kv.Key, json));
             }
+
+            var result = await _db.StringSetAsync([.. entries]);
+
+            if (!result)
+                return Internal("Failed to set values in cache");
+
+            if (expiry.HasValue)
+            {
+                var expiryTasks = entries.Select(e => _db.KeyExpireAsync(e.Key, expiry.Value));
+
+                if (!(await Task.WhenAll(expiryTasks)).All(x => x))
+                    return Internal<List<T>>("Failed to set expiry on cached values");
+            }
+
+            return Ok();
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (JsonException)
+        {
+            return Internal("Failed to serialize values");
+        }
+        catch (Exception)
+        {
+            return Internal("Failed to set values in cache");
+        }
+    }
+
+    public async Task<IResult> SetStringAsync<T>(
+        string key,
+        T value,
+        TimeSpan? expiry = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (value is null)
+            return InvalidArgument("Cannot cache null value");
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var json = JsonSerializer.Serialize(value);
+
+            var result = await _db.StringSetAsync(key, json, expiry, When.Always);
+
+            if (!result)
+                return Internal("Failed to set value in cache");
+
+            return Ok();
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (JsonException)
+        {
+            return Internal("Failed to serialize value");
+        }
+        catch (Exception)
+        {
+            return Internal("Failed to set value in cache");
+        }       
+    }
+
+    public async Task<IResult<List<T>>> GetSetMembersAsync<T>(
+        string key,
+        TimeSpan? slidingExpiration = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var members = await _db.SetMembersAsync(key);
+
+            if (slidingExpiration.HasValue)
+            {
+                var refreshed = await _db.KeyExpireAsync(key, slidingExpiration.Value);
+                if (!refreshed)
+                    return Internal<List<T>>("Failed to refresh sliding expiration");
+            }
+
+            var result = members
+                .Select(m => JsonSerializer.Deserialize<T>(m))
+                .Where(x => x != null)
+                .ToList();
+
+            if (result.Count == 0)
+                return NotFound<List<T>>("No set members found in cache");
+
+            return Ok(result);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (JsonException)
+        {
+            return Internal<List<T>>("Failed to deserialize value");
+        }
+        catch (Exception)
+        {
+            return Internal<List<T>>("Failed to get set members");
+        }
+    }
+
+    public async Task<IResult> AddToSetAsync<T>(
+        string key,
+        T value,
+        TimeSpan? expiry = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var json = JsonSerializer.Serialize(value);
+            var added = await _db.SetAddAsync(key, json);
+
+            if (expiry.HasValue)
+            {
+                var refreshed = await _db.KeyExpireAsync(key, expiry.Value);
+                if (!refreshed)
+                    return Internal<List<T>>("Failed to refresh sliding expiration");
+            }
+
+            return Ok();
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (JsonException)
+        {
+            return Internal("Failed to serialize value");
+        }
+        catch (Exception)
+        {
+            return Internal("Failed to add value to set");
+        }
+    }
+
+    public async Task<IResult> RemoveFromSetAsync<T>(
+        string key,
+        T value,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var json = JsonSerializer.Serialize(value);
+            var removed = await _db.SetRemoveAsync(key, json);
+
+            if (!removed)
+                return NotFound("Value not found in set");
+
+            return Ok();
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (JsonException)
+        {
+            return Internal("Failed to serialize value");
+        }
+        catch (Exception)
+        {
+            return Internal("Failed to remove value from set");
+        }
+    }
+
+    public async Task<IResult> RemoveKeysAsync(
+        string[] keys,
+        CancellationToken cancellationToken = default)
+    {
+        if (keys == null || keys.Length == 0)
+            return InvalidArgument("Keys array cannot be null or empty");
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var redisKeys = keys.Select(k => (RedisKey)k).ToArray();
+
+            var removedCount = await _db.KeyDeleteAsync(redisKeys);
+
+            if (removedCount == 0)
+                return NotFound("No values found in cache");
+
+            return Ok();
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception)
+        {
+            return Internal("Failed to remove values from cache");
+        }
+    }
+
+    public async Task<IResult> RemoveKeyAsync(
+        string key,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var result = await _db.KeyDeleteAsync(key);
+
+            if (!result)
+                return NotFound("Value not found in cache");
+
+            return Ok();
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception)
+        {
+            return Internal("Failed to remove value from cache");
         }
     }
 }

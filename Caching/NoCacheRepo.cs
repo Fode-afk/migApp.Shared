@@ -3,30 +3,55 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using static migApp.Shared.returnTypes.ResultImport;
 
-namespace migApp.Shared.Caching
+namespace migApp.Shared.Caching;
+
+public class NoCacheRepo : ICacheRepo
 {
-    public class NoCacheRepo : ICacheRepo
-    {
-        public Task<ExecutionResult<List<T?>>> GetManyAsync<T>(string[] keys, TimeSpan? slidingExpiration = null, bool includeNulls = false, CancellationToken ct = default) => 
-            Task.FromResult(new ExecutionResult<List<T?>>(true, string.Empty, []));
+    public async Task<IResult<List<T>>> GetStringsAsync<T>(
+        string[] keys,
+        TimeSpan? slidingExpiration = null,
+        bool includeNulls = false,
+        CancellationToken cancellationToken = default) => NotFound<List<T>>(string.Empty);
 
-        public Task<ExecutionResult> SetManyAsync<T>(Dictionary<string, T> data, TimeSpan? expiry = null, CancellationToken ct = default) =>
-            Task.FromResult(new ExecutionResult(true, string.Empty));
+    public async Task<IResult<T>> GetStringAsync<T>(
+        string key,
+        TimeSpan? slidingExpiration = null,
+        CancellationToken cancellationToken = default) => NotFound<T>(string.Empty);
 
-        public Task<ExecutionResult> SetAsync<T>(string key, T value, TimeSpan? expiry = null, CancellationToken ct = default) =>
-            Task.FromResult(new ExecutionResult(true, string.Empty));
+    public async Task<IResult> SetStringsAsync<T>(
+        Dictionary<string, T> data,
+        TimeSpan? expiry = null,
+        CancellationToken cancellationToken = default) => Ok();
 
-        public Task<ExecutionResult> RemoveAsync(string key, CancellationToken ct = default) =>
-            Task.FromResult(new ExecutionResult(true, string.Empty));
+    public async Task<IResult> SetStringAsync<T>(
+        string key, 
+        T value,
+        TimeSpan? expiry = null,
+        CancellationToken cancellationToken = default) => Ok();
 
-        public Task<ExecutionResult<List<T>>> GetSetMembersAsync<T>(string key, TimeSpan? slidingExpiration = null, CancellationToken ct = default) => 
-            Task.FromResult(new ExecutionResult<List<T?>>(true, string.Empty, []));
+    public async Task<IResult<List<T>>> GetSetMembersAsync<T>(
+        string key,
+        TimeSpan? slidingExpiration = null,
+        CancellationToken cancellationToken = default) => NotFound<List<T>>(string.Empty);
 
-        public Task<ExecutionResult> AddToSetAsync<T>(string key, T value, TimeSpan? expiry = null, CancellationToken ct = default) =>
-            Task.FromResult(new ExecutionResult(true, string.Empty));
+    public async Task<IResult> AddToSetAsync<T>(
+        string key,
+        T value,
+        TimeSpan? expiry = null,
+        CancellationToken cancellationToken = default) => Ok();
 
-        public Task<ExecutionResult> RemoveFromSetAsync<T>(string key, T value, CancellationToken ct = default) =>
-            Task.FromResult(new ExecutionResult(true, string.Empty));   
-    }
+    public async Task<IResult> RemoveFromSetAsync<T>(
+        string key,
+        T value,
+        CancellationToken cancellationToken = default) => Ok();
+
+    public async Task<IResult> RemoveKeysAsync(
+        string[] keys,
+        CancellationToken cancellationToken = default) => Ok();
+
+    public async Task<IResult> RemoveKeyAsync(
+        string key,
+        CancellationToken cancellationToken = default) => Ok();
 }
