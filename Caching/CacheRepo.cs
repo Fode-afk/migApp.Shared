@@ -1,4 +1,4 @@
-﻿using migApp.Shared.returnTypes;
+﻿using migApp.Shared.Results;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using static migApp.Shared.returnTypes.ResultImport;
+using static migApp.Shared.Results.ResultFactory;
 
 namespace migApp.Shared.Caching;
 
-public class CacheRepo(IConnectionMultiplexer connectionMultiplexer) : ICacheRepo
+/* public class CacheRepo(IConnectionMultiplexer connectionMultiplexer) : ICacheRepo
 {
     private readonly IDatabase _db = connectionMultiplexer.GetDatabase();
 
@@ -357,3 +357,4 @@ public class CacheRepo(IConnectionMultiplexer connectionMultiplexer) : ICacheRep
         }
     }
 }
+*/

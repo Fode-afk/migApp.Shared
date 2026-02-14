@@ -1,13 +1,13 @@
-﻿using migApp.Shared.returnTypes;
+﻿using migApp.Shared.Results;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using static migApp.Shared.returnTypes.ResultImport;
+using static migApp.Shared.Results.ResultFactory;
 
 namespace migApp.Shared.Caching;
 
-public class NoCacheRepo : ICacheRepo
+/* public class NoCacheRepo : ICacheRepo
 {
     public async Task<IResult<List<T>>> GetStringsAsync<T>(
         string[] keys,
@@ -55,3 +55,4 @@ public class NoCacheRepo : ICacheRepo
         string key,
         CancellationToken cancellationToken = default) => Ok();
 }
+*/

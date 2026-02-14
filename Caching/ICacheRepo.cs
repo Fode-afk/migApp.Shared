@@ -1,4 +1,4 @@
-﻿using migApp.Shared.returnTypes;
+﻿using migApp.Shared.Results;
 using System;
 using System.Collections.Generic;
 using System.Threading;
