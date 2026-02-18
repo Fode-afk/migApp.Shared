@@ -1,6 +1,4 @@
-﻿using migApp.Shared.MsgBus.Dtos.Product;
-
-namespace migApp.Shared.MsgBus.Dtos.Products
+﻿namespace migApp.Shared.MsgBus.Dtos.Products
 {
     public class ProductUnarchivedDto : ProductDtoClass
     {

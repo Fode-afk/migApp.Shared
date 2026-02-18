@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace migApp.Shared.MsgBus.Dtos.Product
+namespace migApp.Shared.MsgBus.Dtos.Products
 {
     public class ProductDeletedDto : ProductDtoClass
     {

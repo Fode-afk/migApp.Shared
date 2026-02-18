@@ -1,7 +1,6 @@
-﻿using migApp.Shared.MsgBus.Dtos.Products;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace migApp.Shared.MsgBus.Dtos.Product
+namespace migApp.Shared.MsgBus.Dtos.Products
 {
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "DtoType")]
     [JsonDerivedType(typeof(ProductPublishedDto), "Published")]

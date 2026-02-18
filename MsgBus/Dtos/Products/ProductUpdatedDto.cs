@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using migApp.Shared.Dtos.Products;
 using migApp.Shared.Enums.Product;
-using migApp.Shared.MsgBus.Dtos.Product;
 
 namespace migApp.Shared.MsgBus.Dtos.Products
 {
