@@ -1,3 +1,8 @@
-﻿namespace migApp.Shared.Messaging.IntegrationEvents.Vendors;
+﻿using System;
 
-public sealed record VendorCreatedIntegrationEvent(string VendorId);
+namespace migApp.Shared.Messaging.IntegrationEvents.Vendors;
+
+public sealed record VendorCreatedIntegrationEvent(
+    Guid VendorId,
+    bool IsActive,
+    long Version);
