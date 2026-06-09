@@ -8,8 +8,6 @@ namespace migApp.Shared.Grpc;
 
 public class GrpcExceptionInterceptor(ILogger<GrpcExceptionInterceptor> logger) : Interceptor
 {
-    private readonly ILogger<GrpcExceptionInterceptor> _logger = logger;
-
     public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(
         TRequest request,
         ServerCallContext context,
@@ -29,7 +27,7 @@ public class GrpcExceptionInterceptor(ILogger<GrpcExceptionInterceptor> logger) 
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "INTERNAL_SERVER_ERROR");
+            logger.LogError(ex, "INTERNAL_SERVER_ERROR");
 
             throw new RpcException(new Status(
                 StatusCode.Internal,

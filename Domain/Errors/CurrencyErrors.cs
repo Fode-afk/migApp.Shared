@@ -4,9 +4,17 @@ namespace migApp.Shared.Domain.Errors;
 
 public static class CurrencyErrors
 {
-    public static Error CodeIsRequired() => Error.InvalidArgument(CurrencyErrorCodes.CodeIsRequired);
-    public static Error UnsupportedCurrency() => Error.InvalidArgument(CurrencyErrorCodes.UnsupportedCurrency);
-    public static Error InvalidFormat() => Error.InvalidArgument(CurrencyErrorCodes.InvalidFormat);
+    public static Error CodeIsRequired() =>
+        Error.InvalidArgument(CurrencyErrorCodes.CodeIsRequired,
+            "Currency code is required");
+
+    public static Error UnsupportedCurrency() =>
+        Error.InvalidArgument(CurrencyErrorCodes.UnsupportedCurrency,
+            "Unsupported currency");
+
+    public static Error InvalidFormat() =>
+        Error.InvalidArgument(CurrencyErrorCodes.InvalidFormat,
+            "Invalid currency format");
 }
 
 public static class CurrencyErrorCodes

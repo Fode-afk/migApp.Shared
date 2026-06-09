@@ -2,7 +2,7 @@
 
 namespace migApp.Shared.Messaging.IntegrationEvents.ProductVariants;
 
-public sealed record ProductImageAddedIntegrationEvent(
+public sealed record ProductVariantImageRemovedIntegrationEvent(
     Guid ProductVariantId,
     bool HasMainImage,
     long Version);

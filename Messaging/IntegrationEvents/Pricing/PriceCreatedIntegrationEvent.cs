@@ -2,4 +2,7 @@
 
 namespace migApp.Shared.Messaging.IntegrationEvents.Pricing;
 
-public sealed record PriceCreatedIntegrationEvent(Guid ProductId, Guid VendorId, decimal Price);
+public sealed record PriceCreatedIntegrationEvent(
+    Guid ProductVariantId,
+    bool HasActivePrice,
+    long Version);
