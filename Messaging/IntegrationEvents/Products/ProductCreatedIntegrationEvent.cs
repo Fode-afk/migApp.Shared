@@ -17,4 +17,5 @@ public sealed record ProductCreatedIntegrationEvent(
     string SeoKeywords,
     ProductStatus ProductStatus,
     bool CanBeModified,
+    bool IsVisiblePublicly,
     long Version);

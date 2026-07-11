@@ -8,4 +8,5 @@ public sealed record ProductUnsuspendedIntegrationEvent(
     Guid ProductId,
     ProductStatus ProductStatus,
     List<SuspensionReason> SuspensionReasons,
+    bool IsVisiblePublicly,
     long Version);

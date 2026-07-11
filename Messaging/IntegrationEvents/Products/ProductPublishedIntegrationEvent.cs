@@ -10,4 +10,5 @@ public sealed record ProductPublishedIntegrationEvent(
     bool CanBeModified,
     ProductStatus ProductStatus,
     List<SuspensionReason> SuspensionReasons,
+    bool IsVisiblePublicly,
     long Version);

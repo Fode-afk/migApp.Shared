@@ -8,4 +8,5 @@ public sealed record ProductUnpublishedIntegrationEvent(
     Guid CategoryId,
     bool CanBeModified,
     ProductStatus ProductStatus,
+    bool IsVisiblePublicly,
     long Version);
