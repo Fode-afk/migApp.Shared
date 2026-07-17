@@ -6,6 +6,7 @@ namespace migApp.Shared.Messaging.IntegrationEvents.Products;
 public sealed record ProductLockedIntegrationEvent(
     Guid ProductId,
     Guid CategoryId,
+    Guid VendorId,
     bool CanBeModified,
     bool IsLockedByAdmin,
     ProductStatus ProductStatus,

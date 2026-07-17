@@ -6,6 +6,7 @@ namespace migApp.Shared.Messaging.IntegrationEvents.Products;
 
 public sealed record ProductSuspendedIntegrationEvent(
     Guid ProductId,
+    Guid VendorId,
     ProductStatus ProductStatus,
     List<SuspensionReason> SuspensionReasons,
     bool IsVisiblePublicly,
