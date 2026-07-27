@@ -16,6 +16,7 @@
 	<ItemGroup>
 	  <Folder Include="Caching\" />
 	  <Folder Include="Domain\Primitives\" />
+	  <Folder Include="Messaging\IntegrationEvents\Discounts\" />
 	</ItemGroup>
 
 </Project>
