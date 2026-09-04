@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace migApp.Shared.Dtos.Product;
 
 public sealed record ProductAttributeDto(
-    Guid? CharacteristicId,
+    Guid CharacteristicId,
     string Name,
     string? Value,
     AttributeCharType CharType,
