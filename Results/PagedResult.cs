@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace migApp.Shared.Results;
 
-public class PagedResult<T>(List<T> items, int totalCount, int pageNumber, int pageSize)
+public record PagedResult<T>(
+    List<T> Items,
+    int TotalCount, 
+    int PageNumber, 
+    int PageSize)
 {
-    public List<T> Items { get; set; } = items;
-    public int TotalCount { get; set; } = totalCount;
-    public int PageNumber { get; set; } = pageNumber;
-    public int PageSize { get; set; } = pageSize;
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
 }
