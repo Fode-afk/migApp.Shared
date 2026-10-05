@@ -13,5 +13,6 @@ public sealed record ProductInfoUpdatedIntegrationEvent(
     string SeoTitle,
     string SeoDescription,
     string SeoKeywords,
-    bool CanBeModified,
+    bool CanEditContent,
+    bool CanEditOperationalData,
     long Version);
