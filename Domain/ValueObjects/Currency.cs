@@ -13,52 +13,51 @@ public sealed class Currency : ValueObject
     { 
         Code = code;
         MinorUnits = minorUnits;
+        MinorFactor = Pow10(minorUnits);
     }
 
-    public const int MaxCodeLength = 3;
+    public const int CodeLength = 3;
 
     public string Code { get; }
     public int MinorUnits { get; }
+    public decimal MinorFactor { get; }
 
-    public decimal MinorFactor
+    private static decimal Pow10(int digits)
     {
-        get
-        {
-            decimal result = 1;
-            for (int i = 0; i < MinorUnits; i++)
-                result *= 10;
-            return result;
-        }
+        var result = 1m;
+        for (var i = 0; i < digits; i++)
+            result *= 10m;
+        return result;
     }
 
     public static readonly Currency USD = new("USD", 2);
     public static readonly Currency EUR = new("EUR", 2);
     public static readonly Currency BYN = new("BYN", 2);
-    public static readonly Currency RUB = new("RUB", 0);
+    public static readonly Currency RUB = new("RUB", 2);
+
+    private static readonly IReadOnlyDictionary<string, Currency> _supported =
+        new[] { USD, EUR, BYN, RUB }.ToDictionary(c => c.Code);
+    public static IReadOnlyCollection<Currency> All => [.. _supported.Values];
 
     public static IResult<Currency> Create(string code)
     {
         if (string.IsNullOrWhiteSpace(code))
             return Fail<Currency>(CurrencyErrors.CodeIsRequired());
 
-        if (!code.All(char.IsLetter) || code.Length > MaxCodeLength)
+        code = code.Trim();
+
+        if (code.Length != CodeLength || !code.All(char.IsAsciiLetter))
             return Fail<Currency>(CurrencyErrors.InvalidFormat());
 
-        code = code.ToUpperInvariant();
-
-        return code switch
-        {
-            "USD" => Ok(USD),
-            "EUR" => Ok(EUR),
-            "BYN" => Ok(BYN),
-            "RUB" => Ok(RUB),
-            _ => Fail<Currency>(CurrencyErrors.UnsupportedCurrency())
-        };
-    }      
+        return _supported.TryGetValue(code.ToUpperInvariant(), out var currency)
+            ? Ok(currency)
+            : Fail<Currency>(CurrencyErrors.UnsupportedCurrency());
+    }
 
     public override IEnumerable<object> GetAtomicValues()
     {
         yield return Code;
-        yield return MinorUnits;
     }
+
+    public override string ToString() => Code;
 }

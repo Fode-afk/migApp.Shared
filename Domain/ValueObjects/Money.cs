@@ -7,8 +7,10 @@ using static migApp.Shared.Results.ResultFactory;
 
 namespace migApp.Shared.Domain.ValueObjects;
 
-public sealed class Money : ValueObject
+public sealed class Money : ValueObject, IComparable<Money>
 {
+    public const decimal MaxAmount = 1_000_000_000_000m;
+
     public static Money Zero(Currency currency) => Create(0, currency).Value;
 
     private Money(decimal amount, Currency currency)
@@ -27,6 +29,9 @@ public sealed class Money : ValueObject
 
         if (amount < 0)
             return Fail<Money>(MoneyErrors.AmountNegative());
+
+        if (amount > MaxAmount)
+            return Fail<Money>(MoneyErrors.AmountTooLarge());
 
         var normalized = Normalize(amount, currency);
 
@@ -53,39 +58,22 @@ public sealed class Money : ValueObject
 
     public static IResult<long> ToMinor(decimal amount, Currency currency)
     {
-        if (amount < 0)
-            return Fail<long>(MoneyErrors.AmountNegative());
+        var moneyResult = Create(amount, currency);
 
-        var factor = currency.MinorFactor;
+        if (moneyResult.IsFailure)
+            return Fail<long>(moneyResult.Error);
 
-        var normalized = Normalize(amount, currency);
-
-        if (normalized != amount)
-            return Fail<long>(MoneyErrors.AmountHasTooManyDecimalPlaces());
-
-        try
-        {
-            checked
-            {
-                return Ok((long)Math.Round(normalized * factor, 0, MidpointRounding.ToEven));
-            }
-        }
-        catch (OverflowException)
-        {
-            return Fail<long>(MoneyErrors.AmountTooLarge());
-        }
+        return Ok(moneyResult.Value.ToMinor());
     }
+
+    public long ToMinor() => decimal.ToInt64(Amount * Currency.MinorFactor);
 
     public IResult<IReadOnlyList<Money>> Split(int parts)
     {
         if (parts <= 0)
             return Fail<IReadOnlyList<Money>>(MoneyErrors.InvalidParts());
-
-        var minorResult = ToMinor(Amount, Currency);
-        if (minorResult.IsFailure)
-            return Fail<IReadOnlyList<Money>>(minorResult.Error);
-
-        var minor = minorResult.Value;
+       
+        var minor = ToMinor();
 
         var basePart = minor / parts;
         var remainder = minor % parts;
@@ -103,31 +91,14 @@ public sealed class Money : ValueObject
 
     public static Money operator +(Money left, Money right)
     {
-        if (left.Currency != right.Currency)
-            throw new InvalidOperationException(MoneyErrorCodes.DifferentCurrencies);
-
-        var result = Create(left.Amount + right.Amount, left.Currency);
-
-        if (result.IsFailure)
-            throw new InvalidOperationException(result.Error.Code);
-
-        return result.Value;
+        EnsureSameCurrency(left, right);
+        return CreateOrThrow(left.Amount + right.Amount, left.Currency);
     }
 
     public static Money operator -(Money left, Money right)
     {
-        if (left.Currency != right.Currency)
-            throw new InvalidOperationException(MoneyErrorCodes.DifferentCurrencies);
-
-        if (left < right)
-            throw new InvalidOperationException(MoneyErrorCodes.AmountNegative);
-
-        var result = Create(left.Amount - right.Amount, left.Currency);
-
-        if (result.IsFailure)
-            throw new InvalidOperationException(result.Error.Code);
-
-        return result.Value;
+        EnsureSameCurrency(left, right);
+        return CreateOrThrow(left.Amount - right.Amount, left.Currency);
     }
 
     public static Money operator *(Money money, int multiplier)
@@ -135,12 +106,7 @@ public sealed class Money : ValueObject
         if (multiplier < 0)
             throw new InvalidOperationException(MoneyErrorCodes.NegativeMultiplier);
 
-        var result = Create(money.Amount * multiplier, money.Currency);
-
-        if (result.IsFailure)
-            throw new InvalidOperationException(result.Error.Code);
-
-        return result.Value;
+        return CreateOrThrow(money.Amount * multiplier, money.Currency);
     }
 
     public static Money operator /(Money money, int divisor)
@@ -151,51 +117,41 @@ public sealed class Money : ValueObject
         if (divisor < 0)
             throw new InvalidOperationException(MoneyErrorCodes.NegativeDivisor);
 
-        var raw = money.Amount / divisor;
-
-        var result = Create(raw, money.Currency);
-
-        if (result.IsFailure)
-            throw new InvalidOperationException(result.Error.Code);
-
-        return result.Value;
+        return CreateOrThrow(money.Amount / divisor, money.Currency);
     }
 
-    public static bool operator >(Money left, Money right)
+    public static bool operator >(Money left, Money right) => left.CompareTo(right) > 0;
+    public static bool operator <(Money left, Money right) => left.CompareTo(right) < 0;
+    public static bool operator >=(Money left, Money right) => left.CompareTo(right) >= 0;
+    public static bool operator <=(Money left, Money right) => left.CompareTo(right) <= 0;
+
+    public int CompareTo(Money? other)
     {
-        if (left.Currency != right.Currency)
-            throw new InvalidOperationException(MoneyErrorCodes.DifferentCurrencies);
+        if (other is null)
+            return 1;
 
-        return left.Amount > right.Amount;
-    }
+        EnsureSameCurrency(this, other);
 
-    public static bool operator <(Money left, Money right)
-    {
-        if (left.Currency != right.Currency)
-            throw new InvalidOperationException(MoneyErrorCodes.DifferentCurrencies);
-
-        return left.Amount < right.Amount;
-    }
-
-    public static bool operator >=(Money left, Money right)
-    {
-        if (left.Currency != right.Currency)
-            throw new InvalidOperationException(MoneyErrorCodes.DifferentCurrencies);
-
-        return left.Amount >= right.Amount;
-    }
-
-    public static bool operator <=(Money left, Money right)
-    {
-        if (left.Currency != right.Currency)
-            throw new InvalidOperationException(MoneyErrorCodes.DifferentCurrencies);
-
-        return left.Amount <= right.Amount;
+        return Amount.CompareTo(other.Amount);
     }
 
     public override IEnumerable<object> GetAtomicValues()
     {
         yield return Amount;
         yield return Currency;
+    }
+
+    private static void EnsureSameCurrency(Money left, Money right)
+    {
+        if (!left.Currency.Equals(right.Currency))
+            throw new InvalidOperationException(MoneyErrorCodes.DifferentCurrencies);
+    }
+
+    private static Money CreateOrThrow(decimal amount, Currency currency)
+    {
+        var result = Create(amount, currency);
+        return result.IsSuccess
+            ? result.Value
+            : throw new InvalidOperationException(result.Error.Code);
     }
 }
