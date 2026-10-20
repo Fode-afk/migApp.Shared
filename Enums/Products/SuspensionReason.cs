@@ -5,5 +5,4 @@ public enum SuspensionReason
     CategoryDeactivated,
     BrandDeactivated,
     VendorDeactivated,
-    NoPriceAvailable
 }

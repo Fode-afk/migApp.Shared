@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace migApp.Shared.Results;
 
 public record PagedResult<T>(
-    List<T> Items,
+    IReadOnlyList<T> Items,
     int TotalCount, 
     int PageNumber, 
     int PageSize)
