@@ -9,6 +9,7 @@ namespace migApp.Shared.Domain.ValueObjects;
 
 public sealed class Currency : ValueObject
 {
+    private Currency() { }
     private Currency(string code, int minorUnits)
     { 
         Code = code;
@@ -60,4 +61,5 @@ public sealed class Currency : ValueObject
     }
 
     public override string ToString() => Code;
+    public static implicit operator string(Currency currency) => currency.ToString();
 }

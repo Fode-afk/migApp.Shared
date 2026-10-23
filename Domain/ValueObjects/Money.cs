@@ -13,6 +13,7 @@ public sealed class Money : ValueObject, IComparable<Money>
 
     public static Money Zero(Currency currency) => Create(0, currency).Value;
 
+    private Money() { }
     private Money(decimal amount, Currency currency)
     {
         Amount = amount;
@@ -45,8 +46,7 @@ public sealed class Money : ValueObject, IComparable<Money>
         Math.Round(
             value,
             currency.MinorUnits,
-            MidpointRounding.ToEven
-        );
+            MidpointRounding.ToEven);
 
     public static IResult<Money> FromMinor(long minorAmount, Currency currency)
     {
@@ -54,16 +54,6 @@ public sealed class Money : ValueObject, IComparable<Money>
             return Fail<Money>(MoneyErrors.AmountNegative());
 
         return Create(minorAmount / currency.MinorFactor, currency);
-    }
-
-    public static IResult<long> ToMinor(decimal amount, Currency currency)
-    {
-        var moneyResult = Create(amount, currency);
-
-        if (moneyResult.IsFailure)
-            return Fail<long>(moneyResult.Error);
-
-        return Ok(moneyResult.Value.ToMinor());
     }
 
     public long ToMinor() => decimal.ToInt64(Amount * Currency.MinorFactor);
